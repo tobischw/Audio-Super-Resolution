@@ -5,9 +5,9 @@ matplotlib.use('Agg')
 import argparse
 import numpy as np
 
-import model
-import train
-from io import load_h5, upsample_wav
+from model import AudioUnet
+from train import Solver
+from ops import load_h5, upsample_wav
 import dataset
 
 # ----------------------------------------------------------------------------
@@ -45,7 +45,8 @@ def make_parser():
     help='Directory to save Model checkpoints')
   train_parser.add_argument('--save_step', default=10, type=int,
     help='epochs after which to save the model')
-
+  train_parser.add_argument('--logname', required=True,
+    help='path to training checkpoint')
 
   # eval
 
@@ -67,13 +68,22 @@ def make_parser():
 # ----------------------------------------------------------------------------
 
 def train(args):
-
-
+  #X_train, Y_train = load_h5(args.train)
+  #X_val, Y_val = load_h5(args.val)
+  # determine super-resolution level
+  #n_dim, n_chan = Y_train[0].shape
+  #r = Y_train[0].shape[1] / X_train[0].shape[1]
+  #assert n_chan == 1
   # create model
-  model = get_model(args, n_dim, r, from_ckpt=False, train=True)
-
+  #model = get_model(args, n_dim, r, from_ckpt=False, train=True)
   # train model
-  model.fit(X_train, Y_train, X_val, Y_val, n_epoch=args.epochs)
+  #model.fit(X_train, Y_train, X_val, Y_val, n_epoch=args.epochs)
+  config = {'alg': 'adam', 'lr': 1e-4, 'b1': 0.99, 'b2': 0.999, 'num_layers': 4, 'batch_size': 128, 'epoch': args.epochs, 'model_save_dir':args.save_dir, 'model_save_step':args.save_step, 'logdir': args.logdir}
+
+  solver = Solver(config, args)
+
+  solver.train()
+
 
 def eval(args):
   # load model
@@ -92,13 +102,13 @@ def eval(args):
 def get_model(args, n_dim, r, from_ckpt=False, train=True):
   """Create a model based on arguments"""  
   if train:
-    config = { 'alg' : args.alg, 'lr' : args.lr, 'b1' : args.beta1, 'b2' : 0.999,
+    opt_params = { 'alg' : args.alg, 'lr' : args.lr, 'b1' : args.b1, 'b2' : args.b2,
                    'batch_size': args.batch_size, 'layers': args.layers }
   else: 
     opt_params = default_opt
 
   # create model
-  model = models.AudioUNet(from_ckpt=from_ckpt, n_dim=n_dim, r=r, 
+  model = AudioUnet(from_ckpt=from_ckpt, n_dim=n_dim, r=r, 
                                opt_params=opt_params, log_prefix=args.logname)
   return model
 

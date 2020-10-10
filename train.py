@@ -6,50 +6,50 @@ import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-import torch.utils.data.Dataloader as dataloader
+from torch.utils.tensorboard import SummaryWriter
 
 from dataset import DataSet
-from model import Down1d, Up1d, Bottleneck, AudioUnet
+from model import Down1D, Up1D, Bottleneck, AudioUnet
 from utility import avg_sqrt_l2_loss
-from io import load_h5
+from ops import load_h5
+from torch.utils.data import DataLoader
 
 import librosa
 
 default_opt = {'alg': 'adam', 'lr': 1e-4, 'b1': 0.99, 'b2': 0.999, 'num_layers': 4, 'batch_size': 128}
 
 class Solver(object):
-	def __init__(self, config):
+	def __init__(self, config, args):
 
 		self.config = config
 		# self.data_loader = data_loader make separate function for dataloader
 
-		self.train_path = self.config['train_path']
-		self.eval_path = self.config['eval_path']
+		self.args = args 
 
 		self.epoch = self.config['epoch']
 		self.batch_size = self.config['batch_size']
-		self.log_dir = self.config['log_dir']
 		self.num_layers = self.config['num_layers']
 		self.alg = self.config['alg']
 		self.lr = self.config['lr']
 		self.betas = (self.config['b1'], self.config['b2'])
+		self.logdir = self.config['logdir']
 		
 		self.model_save_dir = self.config['model_save_dir']
 		self.model_save_step = self.config['model_save_step']
 
 	def build_model(self):
-		self.device = torch.device("cuda:0" if torch.cuda.is_avaialble() else "cpu")
+		self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 		self.model = AudioUnet(self.num_layers)
 
 		#Data Parallel
 		# if torch.cuda.device_count() > 1:
 		# 	model = nn.DataParallel(model)
-		model = model.to(self.device)
+		model = self.model.to(self.device)
 
-		if self.alg = "adam":
+		if self.alg == "adam":
 			self.optimizer = torch.optim.Adam(self.model.parameters(), self.lr, betas=self.betas)
-		else
+		else:
 			raise ValueError('Invalid Optimizer: ' + self.alg)
 
 
@@ -63,14 +63,15 @@ class Solver(object):
 
 	def build_tensorboard(self):
 		"""Build a tensorboard SummaryWriter"""
-		from torch.utils.tensorboard import SummaryWriter
 		writer = SummaryWriter(self.logdir)
 
 	def train(self):
-		build_model()
-		build_tensorboard()
-		load_dataset()
-		data_loader = dataloader(self.train_dataset, self.batch, shuffle=True, num_workers=4)
+		self.build_model()
+		self.build_tensorboard()
+		self.load_dataset()
+
+		print(self.train_dataset)
+		data_loader = DataLoader(self.train_dataset, self.batch_size, shuffle=True, num_workers=4)
 
 		#train Loops
 		start_time = time.time()
@@ -109,7 +110,7 @@ class Solver(object):
 
 	def eval_err(self, dataset, n_batch=128):
 		"""Error Evaluation loops"""
-		batch_iterator = dataloader(dataset, n_batch, shuffle=True, num_workers=4)
+		batch_iterator = DataLoader(dataset, n_batch, shuffle=True, num_workers=4)
 
 		l2_loss, snr = 0, 0
 		tot_l2_loss, tot_snr = 0, 0
@@ -125,18 +126,18 @@ class Solver(object):
 	def load_dataset(self):
 		"""Load the dataset"""
 		
-		X_train, Y_train = load_h5(args.train)
-		X_val, Y_val = load_h5(args.val)
+		X_train, Y_train = load_h5(self.args.train)
+		X_val, Y_val = load_h5(self.args.val)
 
 		# determine super-resolution level
 		n_dim, n_chan = Y_train[0].shape
 		self.r = Y_train[0].shape[1] / X_train[0].shape[1]
 		assert n_chan == 1
 
-		self.train_dataset = DataSet(X_train, Y_train)
-		self.eval_dataset = DataSet(X_val, Y_val)
+		self.train_dataset = DataSet(self.args.train)
+		self.eval_dataset = DataSet(self.args.val)
 
-	def load_model(self, resume_training=True, epoch):
+	def load_model(self, resume_training=True, epoch=None):
 		if resume_training:
 			model_path = os.path.join(self.model_save_dir, '{}-model.ckpt'.format(epoch))
 			self.model.load_state_dict(torch.load(model_path))

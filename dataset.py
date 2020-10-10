@@ -7,6 +7,7 @@ Created on Thu Mar 12 20:52:19 2020
 
 import numpy as np
 import io
+from ops import load_h5
 
 # ----------------------------------------------------------------------------
 
@@ -16,7 +17,7 @@ class DataSet(object):
                fake_data=False,
                one_hot=False,
                dtype=None):
-    datapoints,labels=io.load_h5(path)
+    datapoints,labels=load_h5(path)
     if labels is None:
       labels = np.zeros((len(datapoints),))
 
@@ -36,6 +37,9 @@ class DataSet(object):
   @property
   def datapoints(self):
     return self._datapoints
+
+  def __len__(self):
+    return self._num_examples
 
   @property
   def labels(self):

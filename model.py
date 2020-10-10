@@ -3,7 +3,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from layers import SubPixel1D
+from layers import SubPixel1d
 
 
 n_filters = [  128,  256,  512, 512, 512, 512, 512, 512]
@@ -11,7 +11,7 @@ n_filtersizes = [65, 33, 17,  9,  9,  9,  9, 9, 9]
 
 class Down1D(nn.Module):
 	"""doc string for Down1D"""
-	def __init__(self, in_channel, out_channel, kernel, stride=2, padding):
+	def __init__(self, in_channel, out_channel, kernel, stride=2, padding=4):
 		super(Down1D, self).__init__()
 
 		self.c1 = nn.Conv1d(in_channel, out_channel, kernel_size=kernel, stride=stride, padding=kernel/2 ) 
@@ -24,7 +24,7 @@ class Down1D(nn.Module):
 
 class Up1D(nn.Module):
 	"""doc string for Down1D"""
-	def __init__(self, in_channel, out_channel, kernel, stride=2, padding):
+	def __init__(self, in_channel, out_channel, kernel, stride=2, padding=4):
 		super(Up1D, self).__init__()
 
 		self.c1 = nn.ConvTranspose1d(in_channel, out_channel, kernel_size=kernel, stride=stride, padding=kernel/2 )
@@ -41,7 +41,7 @@ class Up1D(nn.Module):
 
 class Bottleneck(nn.Module):
 	"""doc string for Down1D"""
-	def __init__(self, in_channel, out_channel, kernel, stride=2, padding):
+	def __init__(self, in_channel, out_channel, kernel, stride=2, padding=4):
 		super(Bottleneck, self).__init__()
 
 		self.c1 = nn.Conv1d(in_channel, out_channel, kernel_size=kernel, stride=stride, padding=kernel/2 )
@@ -64,7 +64,7 @@ class AudioUnet(nn.Module):
 			self.downsample.append(Down1D(in_channels, nf, fs))
 			in_channels = nf
 
-		self.bottleneck = Bottleneck(in_channels, n_filter[-1], n_filtersizes[-1])
+		self.bottleneck = Bottleneck(in_channels, n_filters[-1], n_filtersizes[-1])
 		
 		self.upsample = nn.ModuleList([])
 		for l, nf, fs in reversed(list(zip(list(range(num_layers)), n_filters, n_filtersizes))):
