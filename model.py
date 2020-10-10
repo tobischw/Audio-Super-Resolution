@@ -60,14 +60,14 @@ class AudioUnet(nn.Module):
 		super(AudioUnet, self).__init__()
 		self.downsample = nn.ModuleList([])
 		in_channels = 1
-		for l, nf, fs in zip(range(num_layers), n_filters, n_filtersizes):
+		for l, nf, fs in zip(list(range(num_layers)), n_filters, n_filtersizes):
 			self.downsample.append(Down1D(in_channels, nf, fs))
 			in_channels = nf
 
 		self.bottleneck = Bottleneck(in_channels, n_filter[-1], n_filtersizes[-1])
 		
 		self.upsample = nn.ModuleList([])
-		for l, nf, fs in reversed(zip(range(num_layers), n_filters, n_filtersizes)):
+		for l, nf, fs in reversed(list(zip(list(range(num_layers)), n_filters, n_filtersizes))):
 			self.upsample.append(Up1D(in_channels, nf, fs))
 			in_channels = nf
 
@@ -79,7 +79,7 @@ class AudioUnet(nn.Module):
 		for i in range(num_layers):
 			down_outs.append(self.downsample[i](down_outs[i]))
 		x1 = self.bottlebeck(down_outs[-1])
-		for i, d in zip(range(num_layers), reversed(down_outs[1:])):
+		for i, d in zip(list(range(num_layers)), reversed(down_outs[1:])):
 			x1 = self.upsample[i](x1)
 			x1 = torch.cat([x1, down_outs[i]]) #concat axis =-1 for tf
 		x1 = self.final(x1)
