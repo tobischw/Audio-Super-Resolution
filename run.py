@@ -70,7 +70,7 @@ def train(args):
 
 
   # create model
-  model = get_model(, n_dim, r, from_ckpt=False, train=True)
+  model = get_model(args, n_dim, r, from_ckpt=False, train=True)
 
   # train model
   model.fit(X_train, Y_train, X_val, Y_val, n_epoch=args.epochs)
