@@ -71,7 +71,7 @@ class Solver(object):
 		self.load_dataset()
 
 		print(self.train_dataset)
-		data_loader = DataLoader(self.train_dataset, self.batch_size, shuffle=True, num_workers=4)
+		data_loader = DataLoader(self.train_dataset, self.batch_size, shuffle=True, num_workers=0)
 
 		#train Loops
 		start_time = time.time()
