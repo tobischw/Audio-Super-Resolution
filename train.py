@@ -65,13 +65,14 @@ class Solver(object):
 		"""Build a tensorboard SummaryWriter"""
 		writer = SummaryWriter(self.logdir)
 
+
 	def train(self):
 		self.build_model()
 		self.build_tensorboard()
 		self.load_dataset()
 
 		print(self.train_dataset)
-		data_loader = DataLoader(self.train_dataset, self.batch_size, shuffle=True, num_workers=0)
+		data_loader = DataLoader(self.train_dataset, self.batch_size, shuffle=True, num_workers=0, collate_fn=self.collate_fn)
 
 		#train Loops
 		start_time = time.time()
@@ -107,6 +108,9 @@ class Solver(object):
 				print('Saved Model checkpoints into {}'.format(self.model_save_dir))
 
 		torch.save(self.model.state_dict(), './AudioUnet.pth')
+
+	def collate_fn(batch):
+		return tuple(zip(*batch))
 
 	def eval_err(self, dataset, n_batch=128):
 		"""Error Evaluation loops"""
