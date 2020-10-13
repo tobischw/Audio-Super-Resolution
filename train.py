@@ -79,7 +79,11 @@ class Solver(object):
 		for epoch in range(self.epoch):
 			for X, Y in data_loader:
 				self.model.train()
-				X, Y = X.to(self.device), Y.to(self.device)
+				print("X")
+				print(X)
+				print("Y:")
+				print(Y)
+				#X, Y = X.to(self.device), Y.to(self.device)
 
 				output = self.model(X)
 				tr_l2_loss, tr_l2_snr = avg_sqrt_l2_loss(Y, output) 
@@ -109,7 +113,7 @@ class Solver(object):
 
 		torch.save(self.model.state_dict(), './AudioUnet.pth')
 
-	def collate_fn(batch):
+	def collate_fn(self, batch):
 		return tuple(zip(*batch))
 
 	def eval_err(self, dataset, n_batch=128):

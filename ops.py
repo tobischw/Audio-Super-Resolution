@@ -20,8 +20,6 @@ def load_h5(h5_path):
   # load training data
   print(f"h5_path: {h5_path}")
   with h5py.File(h5_path, 'r') as hf:
-    print ('List of arrays in input file:')
-    print((list(hf.keys())))
     X = np.array(hf.get('data'))
     Y = np.array(hf.get('label'))
     print(('Shape of X:', X.shape))

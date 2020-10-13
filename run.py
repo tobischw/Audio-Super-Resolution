@@ -70,7 +70,6 @@ def make_parser():
 def train(args):
   #X_train, Y_train = load_h5(args.train)
   #X_val, Y_val = load_h5(args.val)
-  # determine super-resolution level
   #n_dim, n_chan = Y_train[0].shape
   #r = Y_train[0].shape[1] / X_train[0].shape[1]
   #assert n_chan == 1
